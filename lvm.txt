@@ -1,0 +1,10 @@
+# linux lvm commands
+
+## create physical volumes
+	$
+
+## create volume groups
+	$
+
+## create logical volumes
+	$
