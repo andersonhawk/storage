@@ -1,0 +1,55 @@
+## debian iscsi notes
+
+## iscsi target (service) configuration
+# install iscsitarget on debian service (kmod: iscsi_trgt.ko, daemon: ietd, admin tool: ietadm)
+	$aptitude install iscsitarget
+
+# iscsitarget service configuration file list
+	/etc/iet/ietd.conf			(iscsitarget config file)
+	/etc/iet/targets.allow			(allow different target access)
+	/etc/iet/initiators.allow		(allow initator access)
+	/etc/iet/initiators.deny
+
+	/etc/init.d/iscsitarget			(start/stop script)
+
+	/etc/default/iscsitarget
+
+# config /etc/iet/ietd.conf
+	Target iqn.2015-10.com.supermicro:storage.disk1.sys1.xyz
+	Lun 0 Path=/dev/sdc3,Type=fileio
+	Alias lun0
+
+# config /etc/default/iscsitarget
+	ISCSITARGET_ENABLE=true
+
+# restart iscsitarget service
+	$systemctl restart iscsitarget.service
+
+# check iscsitarget service status
+	$systemctl status iscsitarget.service
+
+	$ps -ef |grep ietd
+	$lsmod |grep iscsi_trgt
+
+## iscsi initiator (client) configuration
+# install open-iscsi on debian client
+	$aptitude install open-iscsi
+
+# check and start iscsid status
+	$systemctl status open-iscsi.service
+
+# discovery iscsi target (default port 3260)
+	$iscsiadm -m discovery -t sendtargets -p 10.2.15.188:3260
+
+# connect iscsi target
+	$iscsiadm -m node -T iqn.2015-10.com.supermicro:storage.disk1.sys1.xyz -p 10.2.15.188:3260 --login
+
+	$lsblk
+	$mkfs.ext3 /dev/sdc
+
+# disconnect iscsi target
+	$iscsiadm -m node -T iqn.2015-10.com.supermicro:storage.disk1.sys1.xyz -p 10.2.15.188:3260 --logout
+
+# show iscsi target
+	$iscsiadm -m node -S
+
