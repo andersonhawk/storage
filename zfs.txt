@@ -1,0 +1,19 @@
+## zfs command line notes
+
+# check imported zpool
+	$zpool list
+	$zpool list -v
+	$zpool status
+	$zpool status -v
+
+# import zpool vdev (-D list destroy pool)
+	$zpool import
+
+# import and specified pool root directory
+	$zpool import -f -R /media/zroot newsys
+
+# export zpool vdev
+	$zpool export newsys
+	
+
+
