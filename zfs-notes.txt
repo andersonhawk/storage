@@ -1,0 +1,5 @@
+
+### FreeBSD ZFS theory notes ###
+
+# FreeBSD sys/cddl/contrib/opensolaris/uts/common/fs/zfs/zvol.c use GEOM layer
+	APIs: BIO_READ, BIO_WRITE, BIO_FLUSH, BIO_DELETE commands.
