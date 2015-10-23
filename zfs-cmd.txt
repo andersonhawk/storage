@@ -60,3 +60,24 @@
 
 # reboot system.
 
+### FreeBSD ZFS/UFS dual-boot system setup ###
+
+# create partition layout
+	$ gpart create -s gpt da1
+        $ gpart add -a 4K -t freebsd-boot -s 256K da1
+        $ gpart add -a 4K -t freebsd-swap -s 4G da1
+        $ gpart add -a 4K -t freebsd-zfs -s 20G da1
+	$ gpart add -a 4K -t freebsd-ufs -s 20G da1
+
+# da1p3 for zfs boot system and da1p4 for ufs boot system, install two
+# system on those partitions.
+
+# setup boot loader for zfs system.
+	$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 da1
+	$ gpart set -a bootonce -i 3 da1.
+	$ reboot
+
+# setup boot loader for ufs system.
+	$ gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 da1
+	$ gpart set -a bootonce -i 4 da1
+	$ reboot
