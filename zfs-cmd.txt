@@ -1,4 +1,4 @@
-## zfs command line notes
+### ZFS command line notes ###
 
 # check imported zpool
 	$zpool list
@@ -16,4 +16,47 @@
 	$zpool export newsys
 	
 
+### FreeBSD ZFS boot system setup ###
+
+# create partition layout
+	$ gpart create -s gpt da1
+	$ gpart add -a 4K -t freebsd-boot -s 256K da1
+	$ gpart add -a 4K -t freebsd-swap -s 4G da1
+	$ gpart add -a 4K -t freebsd-zfs -s 20G da1
+
+# create zpool sys with freebsd-zfs partition
+	$ zpool create -m /media sys da1p3
+
+# create zfs layout
+	$ zfs create sys/ROOT
+	$ zfs set mountpoint=none sys
+	$ zfs set mountpoint=none sys/ROOT
+
+# create snapshot and save them to rollback on the pool (sys)
+	$ zfs snapshot usbsys/ROOT/default@snap
+	$ zfs list -t all
+	$ zfs send usbsys/ROOT/default@snap > zfs_root_snap
+	$ cat zfs_root_snap | zfs recv sys/ROOT/default
+
+# or just with one command
+	$ zfs send usbsys/ROOT/default@snap | zfs recv sys/ROOT/default
+	$ zpool iostat -v sys 1
+
+# setup boot loader
+	$ gpart bootcode -b /boot/pmbr -p /boot/gptzfsboot -i 1 da1
+	$ gpart set -a bootme -i 3 da1
+
+# config zfs bootfs/mountpoint
+	$ zpool set bootfs=sys/ROOT/default sys
+	$ zfs umount sys/ROOT/default
+	$ zfs set mountpoint=/media sys/ROOT/default
+
+	vim /media/boot/loader.conf, add following two lines:
+		zfs_load="YES"
+		vfs.root.mountfrom="zfs:sys/ROOT/default"
+
+	$ zfs umount sys/ROOT/default
+	$ zfs set mountpoint=/ sys/ROOT/default
+
+# reboot system.
 
