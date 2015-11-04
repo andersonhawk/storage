@@ -1,10 +1,49 @@
-# linux lvm commands
+# linux lvm (abstaction & virtualization
+# LV (logical volumes), VG (volume groups), PV (physical volumes)
 
-## create physical volumes
-	$
+# check block storage on linux system
+	$ ls -l /dev/ |grep sd
+	$ fdisk /dev/sdb
+	$ partprobe
 
-## create volume groups
-	$
+## create physical volumes (cmd set: pv*)
+	$ pvcreate /dev/sdc3
+	$ pvcreate /dev/sdc4
 
-## create logical volumes
-	$
+	$ pvcreate --metadatacopies 2 -v /dev/sdc3
+	$ pvdisplay /dev/sdc3
+	$ pvdisplay /dev/sdc3 -v | -vvvv
+	$ pvs -v | -vvvv
+
+	$ pvremove /dev/sdc3 /dev/sdc4
+
+## create volume groups (cmd set: vg*)
+	$ vgcreate vg_test /dev/sdc3
+
+## grow volume groups vg_test
+	$ vgextend vg_test /dev/sdc4
+
+	$ vgdisplay vg_test -v
+	$ vgs vg_test
+
+	$ vgremove vg_test
+
+## create logical volumes (cmd set: lv*)
+	$ lvcreate -L 1G -n lv_test vg_test
+
+## grow logical volumes
+	$ lvextend -L +2G /dev/vg_test/lv_test
+
+## file system level update
+	$ resize2fs /dev/vg_test/lv_test
+
+## shrink logical volumes
+	$ e2fsck -f /dev/vg_test/lv_test
+	$ resize2fs /dev/vg_test/lv_test 1G
+	$ lvreduce -L -1G vg_test/lv_test
+
+	$ lvs -v
+	$ lvdisplay -v
+
+
+## device mapper (lvm && dm-multipath, dmsetup, libdevmapper api)
