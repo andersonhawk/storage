@@ -42,8 +42,34 @@
 	$ resize2fs /dev/vg_test/lv_test 1G
 	$ lvreduce -L -1G vg_test/lv_test
 
+	$ lvremove vg_test/lv_test1
+
 	$ lvs -v
 	$ lvdisplay -v
 
+## lvm snapshots (snapshot of lv_test)
+	$ lvcreate -L 10M -s -n snap_lv1 /dev/vg_test/lv_test
+	$ mount -t ext4 /dev/vg_test/snap_lv1 /media/snapshot
+
+## convert snapshot to origin dev and delete snapshot
+	$ lvconvert --merge /dev/vg_test/snap_lv1
+
+## thin provision
+	$ lvcreate -L 100m --thinpool tp_pool vg_test
+	$ lvcreate -V 1G --thin -n tp_lv_small vg_test/tp_pool
+
+## migration (mirror)
+	$ pvcreate /dev/sdc5
+	$ vgextend vg_test /dev/sdc5
+	$ lvconvert -m 1 vg_test/lv_test /dev/sdc5 --mirrorlog core
+	$ lvconvert -m 0 vg_test/lv_test /dev/sdc3
+
+	$ vgextend vg_test /dev/sdb1
+	$ pvmove -n lv_test /dev/sdc1 /dev/sdb1
+	$ dmsetup deps /dev/vg_test/lv_test
+	$ ls -l /dev |grep sd
+
+## backup lvm configuration
+## /etc/lvm/backup/
 
 ## device mapper (lvm && dm-multipath, dmsetup, libdevmapper api)
