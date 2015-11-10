@@ -1,0 +1,39 @@
+
+## Linux RAID
+## Implemented through MD driver, managed with mdadm
+
+	$ mdadm --examine /dev/sdd /dev/sde
+## partition sdb and sdc, and choose raid partition type (fd), use
+## mdadmin examine the partition again.
+	$ mdadm --examine /dev/sdd1 /dev/sde1 (no md superblock detected)
+
+## create mirror level raid
+	$ mdadm --create /dev/md0 --level=mirror --raid-devices=2 /dev/sdd1 /dev/sde1
+
+## cat /proc/mdstat to check raid device building process, use mdadm --examine
+## to check device info again.
+
+	$ mdadm --detail /dev/md0
+
+## add a spare member to a mirror raid device
+	$ mdadm --manage /dev/md0 --add /dev/sdf1
+## convert spare device to raid device in a mirror raid device
+	$ mdadm --grow --raid-devices=3 /dev/md0
+
+## fail one of member in raid device
+	$ mdadm --fail /dev/md0 /dev/sdb1
+	$ mdadm --grow --raid-devices=2 /dev/md0
+	$ mdadm --detail /dev/md0
+
+## add sdb1 to a spare member in raid device
+	$ mdadm --zero-superblock /dev/sdb1
+	$ mdadm --manage /dev/md0 --add /dev/sdb1
+
+
+## hotplug one device in raid device (status degraded, auto rebuild)
+	$ mdadm --detail /dev/md0
+
+
+## config file (/etc/mdadm.conf)
+	$ mdadm --detail --scan --verbose >> /etc/mdadm/mdadm.conf
+
