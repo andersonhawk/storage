@@ -6,9 +6,10 @@
 
 ## openfiler lvm config sample (add harddisks in vm) ##
 	## choose 'Volumes' Tab, and choose 'Block Devices'
-	## create physical volume(s) with block device in the list
-	## (physical volume or raid member), after create pvs, use following
-	## cmds to dump physical volume information.
+	## create partiton(s) on the block device (type: physical volume or raid array member)
+
+	## create physical volume(s) with block device(s)
+	## create pvs, use following cmds to dump physical volume information.
 		$ pvs
 		$ pvdisplay
 
@@ -20,6 +21,9 @@
 	## add logic volume, cmds to dump logic volumes.
 		$ lvs
 		$ lvdisplay
+
+	## choose 'Software RAID' to create raid array
+	## choose 'raid type', 'chunk size' and device member/spare, add array
 
 	## choose 'Service' Tab, and enable iscsi target service.
 
