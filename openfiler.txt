@@ -3,3 +3,30 @@
 ## download and setup openfiler virtual machine (scsi or ide controller) ##
 ## default user: openfiler, default password: password ##
 ## user browser login: https://xxx.xxx.xxx.xxx:446 ##
+
+## openfiler lvm config sample (add harddisks in vm) ##
+	## choose 'Volumes' Tab, and choose 'Block Devices'
+	## create physical volume(s) with block device in the list
+	## (physical volume or raid member), after create pvs, use following
+	## cmds to dump physical volume information.
+		$ pvs
+		$ pvdisplay
+
+	## create volume group(s) in 'Volumes' Tab
+		$ vgs
+		$ vgdisplay
+
+	## choose 'Volume Groups' to check vgs, and choose 'Add Volume' to
+	## add logic volume, cmds to dump logic volumes.
+		$ lvs
+		$ lvdisplay
+
+	## choose 'Service' Tab, and enable iscsi target service.
+
+	## choose 'Volumes' Tab, and 'iSCSI Targets' item, add a Target IQN
+	## choose 'LUN Mapping' and map block device
+	## also setup 'Network ACL'
+	## use following cmd to discovery new config iscsi target.
+		$ iscsiadm -m discovery -t sendtargets -p x.x.x.x:3260
+
+
