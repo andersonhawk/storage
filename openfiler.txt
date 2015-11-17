@@ -1,0 +1,5 @@
+### openfiler linux base storage solution ###
+
+## download and setup openfiler virtual machine (scsi or ide controller) ##
+## default user: openfiler, default password: password ##
+## user browser login: https://xxx.xxx.xxx.xxx:446 ##
