@@ -1,0 +1,3 @@
+### freenas storage usage ###
+
+## default install and login with webui account: root, and password xxx ##
