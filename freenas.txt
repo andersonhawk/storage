@@ -1,3 +1,13 @@
 ### freenas storage usage ###
 
 ## default install and login with webui account: root, and password xxx ##
+
+	## freenas 'volumes' refer to a 'ZFS pool'
+	## volume manager layouts:
+		# stripe: requires at least one disk
+		# mirror: requires at least two disks
+		# RAIDZ1: requires at least three disks
+		# RAIDZ2: requires at least four disks
+		# RAIDZ3: requires at least five disks
+		# log device: requires at least one dedicated device (SSD)
+		# cache device: requires at least one dedicated device (SSD)
