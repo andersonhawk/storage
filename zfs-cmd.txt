@@ -14,6 +14,10 @@
 
 # export zpool vdev
 	$zpool export newsys
+
+# quota zfs capacity grow.
+	$ zfs set quota=2G zroot/var/log
+	$ zfs get quota zroot/var/log
 	
 
 ### FreeBSD ZFS boot system setup ###
