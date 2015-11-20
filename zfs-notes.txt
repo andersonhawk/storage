@@ -3,3 +3,58 @@
 
 # FreeBSD sys/cddl/contrib/opensolaris/uts/common/fs/zfs/zvol.c use GEOM layer
 	APIs: BIO_READ, BIO_WRITE, BIO_FLUSH, BIO_DELETE commands.
+
+VDEVs
+
+ZFS uses storage pools (underlying storage providers), seperate the physical
+	medium and the user-visible filesytem on the top of it.
+
+zpool contains one or more virtual devices (VDEVs), a VDEV is similar to a
+	traditional RAID device. A pool can be arranged for RAID-style 
+	redundancy. A dedicated read/write cache provider can improving the
+	virtual device's performance.
+
+	ZFS's data redundancy and automated error correction also take place
+	at the VDEV level. Everything in zfs is checksummed for integrity 
+	verification. zfs is self-healing with sufficient redundancy.
+
+	ZFS uses index blocks and data blocks. ZFS generates index nodes on
+	demand. ZFS creates storage blocks in sizes that fit the data. ZFS
+	stores multiple copies of crtical index blocks at algorithmically
+	predictable locations.
+
+	FreeBSD supports a number of partitioning schemes, but GPT is strongly
+	recommended. GPT supports 128 partitions.
+
+	High Availability Storage Technology (HAST) is distributed storage 
+	solution, it allows you to mirror a block device between computers
+	over network. GEOM supports multipath for high availability, enterprise
+	drives are "dual ported" can be connected to more than one HBA.
+
+VDEV is the logical storage unit of ZFS. ZFS supports plain disks, mirrors,
+	RAID-Z three types of VDEVs. ZFS pool treats VDEVs as single units that
+	provide storage space.
+
+VDEV Redundancy
+	Stripe (1 provider) without redundancy.
+	Mirrors (2+ providers)
+	RAID-Z1 (3+ providers), resembles RAID-5, includes checksumming to 
+		ensure file integrity. (2n+1) VDEVs
+	RAID-Z2 (4+ providers), resembles RAID-6. (2n+2) VDEVs
+	RAID-Z3 (5+ providers), uses three parity disks per VDEV. (2n+3) VDEVs
+
+ZFS RAID advantages (compare traditional RAID solution).
+	By combining the filesystem and the volume manager, ZFS can see 
+	exactly where all data lies and how the storage layer and the data
+	interact.
+
+	ZFS solves 'write hole' problem with copy-on-write and checksums.
+
+	Special VDEVs
+		ZFS intent Log (ZIL/SLOG), writes in-progress operations.
+		Cache (L2ARC), adaptive replacement cache.
+
+	Performance
+		Generally speaking, mirrors can provide better IOPS and read
+	bandwidth, but RAID-Z can provide better write bandwidth and much
+	better space efficiency.
