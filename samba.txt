@@ -16,6 +16,9 @@
 ## after modify the configuration, run command check config ##
 	$ testparam
 
+## samba mount ##
+	$ mount -t cifs -o user=xxx //x.x.x.x/dir /mount_dir
+
 # global configuration #
 	workgroup = xx
 	interfaces = eth0 wlan0
@@ -23,3 +26,15 @@
 	host deny = 10.2.15.x EXCEPT 10.2.15.188
 	security = user
 
+# iptables about samba #
+# cat /etc/services |grep 'microsoft' #
+# iptables ruler #
+	-A INPUT -p udp -m udp --dport 137 -j ACCEPT
+	-A INPUT -p udp -m udp --dport 138 -j ACCEPT
+	-A INPUT -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT
+	-A INPUT -m state --state NEW -m tcp -p tcp --dport 445 -j ACCEPT
+
+# selinux about samba #
+	$ genenforce
+	$ getsebool -a |grep samba
+	$ setsebool -P xx on
