@@ -1,7 +1,25 @@
 ### samba share filesystem between linux/unix and windows ###
 
-## samba configuration: /etc/samba/smb.conf ##
-	# modify 'workgroup' about share group
+## add a samba user/pass ##
+	$ smbpasswd -a thomas
 
-## restart smb service: systemctl restart smbd.service
+## verify the samba user ##
+	$ pdbedit -L
+
+## smbclient usage ##
+	$ smbclient -L localhost -U thomas
+
+## restart smb service ##
+	$ systemctl restart smbd.service
+
+## samba (SMB/CIFS) configuration: /etc/samba/smb.conf ##
+## after modify the configuration, run command check config ##
+	$ testparam
+
+# global configuration #
+	workgroup = xx
+	interfaces = eth0 wlan0
+	host allow = xx.xx xxx.xxx
+	host deny = 10.2.15.x EXCEPT 10.2.15.188
+	security = user
 
