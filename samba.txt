@@ -1,1 +1,7 @@
 ### samba share filesystem between linux/unix and windows ###
+
+## samba configuration: /etc/samba/smb.conf ##
+	# modify 'workgroup' about share group
+
+## restart smb service: systemctl restart smbd.service
+
