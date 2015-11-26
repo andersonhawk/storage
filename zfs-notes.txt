@@ -58,3 +58,44 @@ ZFS RAID advantages (compare traditional RAID solution).
 		Generally speaking, mirrors can provide better IOPS and read
 	bandwidth, but RAID-Z can provide better write bandwidth and much
 	better space efficiency.
+
+ZFS Pools (middle of the ZFS stack)
+	Connect the lower-level virtual devices to the user-visible file system.
+	ZFS doesn't pre-configure special index blocks, it only uses storage
+	blocks (stripes). Each block contrains index information to link the 
+	block to other blocks on the disk in a tree.
+
+	ZFS uses a special block (uberblock) to store a pointer to the filesystem
+	root. ZFS never changes data on the disk, when a block changes, it writes
+	a whole new copy of the block with the modified data (copy-on-write).
+
+	A ZFS data pool reserves 128 blocks for uberblock. 
+
+	A ZFS pool "stripes" data across the VDEVs (traditional RAID "stripes" 
+	data across the physical devices). A stripe is a chunk of data that's
+	written to a single device.
+
+	Stripes do not provice any redundancy. RAID gets redundancy from parity
+	and/or mirroring. ZFS pools get any redundancy from the underlying VDEVs.
+
+	ZFS dataset uses a default stripe size of 128KB, but ZFS is smart enough
+	to dynamically change that stripe size to fit the equipment and the 
+	workload.
+
+	Traditional RAID has a fixed and inflexible data layout, writes to each
+	disk in a deterministic order.
+
+	ZFS pools not only tolerate changes, but they're designed to easily accept
+	additions as well.
+
+	A ZFS pool can include multiple VDEVs. Adding VDEVs not only increases
+	the space available in the pool but also increases the performance.
+
+	Many disks report that they have 512-byte sectors, but they really have
+	4096-byte (4K) sectors. The easy way to avoid alignment problems is to
+	make all GPT partitions begin and end on megabyte boundaries.
+
+	While using a larger sector size does not impact performance, it does
+	reduce space efficiency when you're storing many small files. It is almost
+	preferable to force ZFS to use 4K sectors.
+		$ sysctl vfs.zfs.min_auto_ashift=12

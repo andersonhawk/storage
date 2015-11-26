@@ -18,7 +18,39 @@
 # quota zfs capacity grow.
 	$ zfs set quota=2G zroot/var/log
 	$ zfs get quota zroot/var/log
-	
+
+### ZPool stripe/raid setup ###
+
+## adjust zfs sector size
+	$ sysctl vfs.zfs.min_auto_ashift = 12
+
+## create a stripe pool ##
+	$ zpool create mystripe /dev/vtbd0
+	$ zpool add mystripe /dev/vtbd1
+
+## create a mirror pool with spare VDEV ##
+	$ zpool create mymirror mirror /dev/vtbd0 /dev/vtbd1 spare /dev/vtbd2
+## create a write cache device with the pool ##
+	$ zpool add mymirror log /dev/vtbd3
+## create a read cache device with the pool ##
+	$ zpool add mymirror cache /dev/vtbd4
+
+## create a raid-10 pool (stripes over mirrors) ##
+## pool myraid10 has two VDEVs: mirror-0, mirror-1. each VDEV includes
+## two storage devices. zfs stripes data across all the VDEVs.
+	$ zpool create myraid10 mirror /dev/vtbd0 /dev/vtbd1 \
+		mirror /dev/vtbd2 /dev/vtbd3
+
+## create a stripe data across over raidz VDEVs. ##
+	$ zpool creat myraidz raidz1 /dev/vtbd0 /dev/vtbd1 /dev/vtbd2 \
+		raidz1 /dev/vtbd3 /dev/vtbd4 /dev/vtbd5
+
+## create a raidz pool (raid5-like) ##
+	$ zpool create myraidz /dev/vtbd0 /dev/vtbd1 spare /dev/vtbd2
+
+## remove device from pool ##
+	$ zpool remove mymirror /dev/vtbd4
+	$ zpool labelclear /dev/vtbd4
 
 ### FreeBSD ZFS boot system setup ###
 
