@@ -99,3 +99,34 @@ ZFS Pools (middle of the ZFS stack)
 	reduce space efficiency when you're storing many small files. It is almost
 	preferable to force ZFS to use 4K sectors.
 		$ sysctl vfs.zfs.min_auto_ashift=12
+
+Create Pools and VDEVs
+	Create pools and virtual devices simultaneously with zpool. You'll use
+	zpool to add VDEVs to an existing pool and swap out failed devices.
+
+ZFS Datasets (logic volume management)
+	A dataset is a named chunk of data: could be a raw block device, 
+		a copy of other data, or anything you can cram onto a disk.
+
+	ZFS dataset types: filesystem, volumes, snapshots, clones, and bookmarks.
+		Filesystem dataset is a tranditional filesystem (hold file and
+			directory, permissions, timestamps, acl etc).
+
+		ZFS volume (zvol) is a block device. Zvols get a device node.
+
+		Snapshot is a read-only copy of a dataset from a specific point
+			in time.
+
+		Clone is a new dataset based on a snapshot of an existing 
+			dataset. Allowing you to fork a filesystem.
+
+	Many ZFS features (replication, snapshot) operate on a per-dataset
+		basis.
+
+	Zvols support spare volumes (thin provisioning): is a volume where
+		the reservation is less than the volume size. FreeBSD exposes
+		zvols to the os as geom providers.
+
+	ZFS protections work at the VDEV layer. You can do somethings at the
+		dataset layer to offer some redundancy (checksums, metadata
+		redundancy, copies).
