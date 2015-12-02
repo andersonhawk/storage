@@ -1,0 +1,125 @@
+### Chapter 0: Introduction ###
+	ZFS is not just a filesystem, it is a combination filesystem and volume manager.
+	ZFS being aware of exactly where data is going on the disk, can arrange files
+	and stripes optimally, from top to bottom. ZFS can use secondary fast storage
+	as special-purpose caches, further enhancing performance.
+
+
+### Chapter 1: Introducing ZFS ###
+	The ZFS stack include three layers: filesystem, storage pools, and virtual
+	devices. ZFS tightly integrates the filesystem and the lower storage layers.
+	This means it can dynamically divide storage space between the various
+	filesystems as needed.
+
+	Storage Pools (zpool)
+	ZFS uses storage pools rather than disks. A storage pool is an abstraction
+	atop the underlying storage providers, letting you seperate the physical
+	medium and the user-visible filesystem on top of it. ZFS can perform many
+	sorts of integrity checks on storage pools.
+
+	Virtual Devices (VDEVs)
+	A virtual device is the logical storage unit of ZFS. Each VDEV is composed of
+	one or more GEOM providers.
+
+	A storage pool contains one or more virtual devices (VDEVs). A VDEV is similar
+	to a traditional RAID device. VDEV let you assign specific devices to specific
+	roles. ZFS's data redundancy and automated error correction also take place at
+	the VDEV level. If pool has sufficient redundancy, ZFS is self-healing.
+
+
+### Chapter 2: Virtual Devices ###
+	Anything that is a FreeBSD GEOM storage provider can became a ZFS storage
+	medium: raw disk, disk partition, GEOM classes (GELL, GBDE, high availability,
+	labels, multipath, and pluggable schedulers etc).
+
+	GELL (FreeBSD disk encryption subsystem) is the best way to achieve an
+	encrypted ZFS pool.
+
+	HAST (FreeBSD distributed storage solution) allows you to mirror a block device
+	between computers over the network. Using HAST as the backing storage for a ZFS
+	pool allows you to mirror each backing disk to a second machine.
+
+	Multipath high availability, sometimes it is not just the disk dies, but also
+	the controller card, the backplane, or the cable. With multipath, enterprise
+	drives that are "dual ported" can be connected to more than one HBA. If each
+	drive has a path to two different storage controllers, it can survive the loss
+	of one of those controllers.
+
+	ZFS supports different type of VDEV (redundancy):
+		Plane disks (without redundancy)
+		Mirror disks (with redundancy)
+		RAIDZ (raidz1, raidz2, raidz3 x number of parity)
+
+	A storage pool consists of one or more VDEVs where the pool data is spread
+	across those VDEVs without redundancy. The ZFS pool treats VDEVs as single units
+	that provide storage space.
+
+	ZFS stripes the data across each VDEV without redundancy. The individual VDEVs
+	provide the redundancy. ZFS supports using mirrored disks and several parity
+	based arrays. ZFS uses redundancy to self-heal (automatically).
+		Stripe (1 provider)
+		Mirrors (2+ providers)
+		RAID-Z1 (3+ Providers, 2n+1 disk drives)
+		RAID-Z2 (4+ Providers, 2n+2 disk drivers)
+		RAID-Z3 (5+ Providers, 2n+3 disk drivers)
+
+	Degraded
+	When a provider that belongs to a redundant VDEV fails, the VDEV it is a member
+	of becomes "degraded". After the provider is replaced, the system must store
+	data on the new provider (mirror copied data and raid-z recalculate data parity).
+
+	RAID-Z versue traditional RAID
+	ZFS is the volume manager and the filesystem in addition to the disk redundancy
+	layer. ZFS soles 'write hole' issue with copy-on-write and checksums.
+
+	Special VDEVs
+	ZIL (ZFS Intent Log), ZFS maintains a ZFS Intent Log as part of the pool. ZFS use
+	a SLOG to accelerate writes, with mirror ZIL to prevent data loss.
+
+	LARC, L2ARC (read cache)
+
+### Chapter 3: Pools ###
+	ZFS pools form the middle of the ZFS stack, connecting the lower-level virtual
+	devices to the user-visible filesystem.
+	At the ZFS pool level you can increase the amount of space available to your ZFS
+	dataset, or add special virtual devices to improve reading/writing performance.
+
+	A stripe is a chunk of data that's written to a single device. Stripes don't
+	provide any redundancy (with mirroring and parity).
+
+	A pool can include multiple VDEVs. Adding VDEVs not only increases the space
+	available in the pool but also increases the performance. A pool splits all
+	writes between the VDEVs.
+
+	You cannot currently remove a VDEV from a pool. You can remove disks from certain
+	types fo VDEV (remove a disk from a mirror VDEV). You cannot shrink a pool.
+
+	Pool Alignment (partition alignment: gpart with alignment option)
+
+	ZFS sector size (prefer 4K sectors)
+	Using a larger sector size does not impact performance, it does reduce space
+	efficiency when you're storing many small files.
+
+	Add following line in /etc/sysctl.conf about ZFS default sector size defines.
+		$ sysctl vfs.zfs.min_auto_ashift = 12
+
+	Pool Integrity (ZFS online pool integrity verifies everything)
+	ZFS uses hashed almost everywhere, it uses hashes to detect data errors, uses
+	pool's redundancy to repair any errors before giving the corrected file to os.
+	This is called self-healing.
+
+	While ZFS performs file integrity checks, it also verifies the connections
+	between storage blocks (small part of data verification). If you want to perform
+	a full integrity check on all data in a pool, scrub it.
+
+	A scrub of a ZFS pool verifies the cryptographic hash of every data block in the
+	pool. Scrubs happen while the pool is online and in use.
+		$ zpool scrub <pool>
+
+	ZFS features
+	Every platform runs OpenZFS, should include a zpool-features manual page that
+	lists the pool features this particular install supports.
+		$ man zpool-features
+		$ zpool get all <pool> |grep feature
+
+### Chapter 4: ZFS Datasets ###

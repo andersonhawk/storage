@@ -1,0 +1,190 @@
+### 6 disks example ###
+
+[root@freebsd11 ~]# ls -l /dev/vtbd*
+crw-r-----  1 root  operator  0x54 Dec  1 16:46 /dev/vtbd1
+crw-r-----  1 root  operator  0x55 Dec  2 12:23 /dev/vtbd2
+crw-r-----  1 root  operator  0x56 Dec  2 12:25 /dev/vtbd3
+crw-r-----  1 root  operator  0x57 Dec  1 16:46 /dev/vtbd4
+crw-r-----  1 root  operator  0x58 Dec  1 16:46 /dev/vtbd5
+crw-r-----  1 root  operator  0x59 Dec  1 16:46 /dev/vtbd6
+
+## create a stripe pool: mystripe ##
+
+[root@freebsd11 ~]# zpool create mystripe vtbd1 vtbd2 vtbd3
+[root@freebsd11 ~]# zpool status -v mystripe
+  pool: mystripe
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mystripe    ONLINE       0     0     0
+	  vtbd1     ONLINE       0     0     0
+	  vtbd2     ONLINE       0     0     0
+	  vtbd3     ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a mirror pool: mymirror ##
+
+[root@freebsd11 ~]# zpool create mymirror mirror vtbd1 vtbd2
+[root@freebsd11 ~]# zpool status -v mymirror
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a raidz pool: myraidz ##
+
+[root@freebsd11 ~]# zpool create myraidz raidz1 vtbd1 vtbd2 vtbd3
+[root@freebsd11 ~]# zpool status -v myraidz
+  pool: myraidz
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	myraidz     ONLINE       0     0     0
+	  raidz1-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+
+errors: No known data errors
+
+## check myraidz capacity ##
+
+[root@freebsd11 ~]# zfs list
+NAME      USED  AVAIL  REFER  MOUNTPOINT
+myraidz  67.9K  3.85G  24.0K  /myraidz
+
+## create a multi-VDEV pool: myraid10 ##
+
+[root@freebsd11 ~]# zpool create myraid10 mirror vtbd1 vtbd2 mirror vtbd3 vtbd4
+[root@freebsd11 ~]# zpool status -v myraid10
+  pool: myraid10
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	myraid10    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	  mirror-1  ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a multi-VDEV pool: myraid50 (stripe with raidz) ##
+
+[root@freebsd11 ~]# zpool create myraid50 raidz1 vtbd1 vtbd2 vtbd3 raidz1 vtbd4 vtbd5 vtbd6
+[root@freebsd11 ~]# zpool status -v myraid50
+  pool: myraid50
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	myraid50    ONLINE       0     0     0
+	  raidz1-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	  raidz1-1  ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+	    vtbd5   ONLINE       0     0     0
+	    vtbd6   ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a read cache device with a pool: myread ##
+
+[root@freebsd11 ~]# zpool create myread raidz1 vtbd1 vtbd2 vtbd3 cache vtbd4
+[root@freebsd11 ~]# zpool status -v myread
+  pool: myread
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	myread      ONLINE       0     0     0
+	  raidz1-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	cache
+	  vtbd4     ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a mirrored write cache device with a pool: mywrite ##
+
+[root@freebsd11 ~]# zpool create mywrite raidz1 vtbd1 vtbd2 vtbd3 log mirror vtbd4 vtbd5
+[root@freebsd11 ~]# zpool status -v mywrite
+  pool: mywrite
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mywrite     ONLINE       0     0     0
+	  raidz1-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	logs
+	  mirror-1  ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+	    vtbd5   ONLINE       0     0     0
+
+errors: No known data errors
+
+## create a stripe pool without all of zpool-features ##
+
+[root@freebsd11 ~]# zpool create -d mystripe vtbd1 vtbd2
+[root@freebsd11 ~]# zpool get all mystripe |grep feature
+mystripe  feature@async_destroy          disabled                       local
+mystripe  feature@empty_bpobj            disabled                       local
+mystripe  feature@lz4_compress           disabled                       local
+mystripe  feature@multi_vdev_crash_dump  disabled                       local
+mystripe  feature@spacemap_histogram     disabled                       local
+mystripe  feature@enabled_txg            disabled                       local
+mystripe  feature@hole_birth             disabled                       local
+mystripe  feature@extensible_dataset     disabled                       local
+mystripe  feature@embedded_data          disabled                       local
+mystripe  feature@bookmarks              disabled                       local
+mystripe  feature@filesystem_limits      disabled                       local
+mystripe  feature@large_blocks           disabled                       local
+
+## enable specific feature ##
+
+[root@freebsd11 ~]# zpool export mystripe
+[root@freebsd11 ~]# zpool import -o feature@async_destroy=enabled mystripe
+[root@freebsd11 ~]# zpool get all mystripe |grep feature
+mystripe  feature@async_destroy          enabled                        local
+mystripe  feature@empty_bpobj            disabled                       local
+mystripe  feature@lz4_compress           disabled                       local
+mystripe  feature@multi_vdev_crash_dump  disabled                       local
+mystripe  feature@spacemap_histogram     disabled                       local
+mystripe  feature@enabled_txg            disabled                       local
+mystripe  feature@hole_birth             disabled                       local
+mystripe  feature@extensible_dataset     disabled                       local
+mystripe  feature@embedded_data          disabled                       local
+mystripe  feature@bookmarks              disabled                       local
+
+[root@freebsd11 ~]# zpool set feature@lz4_compress=enabled mystripe
+
+mystripe  feature@filesystem_limits      disabled                       local
+mystripe  feature@large_blocks           disabled                       local
+
