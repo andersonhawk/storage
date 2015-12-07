@@ -284,3 +284,275 @@ mystripe/store       25K  1.78G    25K  /mystripe/store
 	2097152     	# mediasize in sectors
 	8192        	# stripesize
 	0           	# stripeoffset
+
+## add VDEV to a stripe pool ##
+
+[root@freebsd11 /]# zpool list
+NAME       SIZE  ALLOC   FREE  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
+mystripe  3.97G  68.5K  3.97G         -     0%     0%  1.00x  ONLINE  -
+
+[root@freebsd11 /]# zpool status -v
+  pool: mystripe
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mystripe    ONLINE       0     0     0
+	  vtbd1     ONLINE       0     0     0
+	  vtbd2     ONLINE       0     0     0
+
+errors: No known data errors
+
+[root@freebsd11 /]# zpool add mystripe vtbd3
+[root@freebsd11 /]# zpool list
+NAME       SIZE  ALLOC   FREE  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
+mystripe  5.95G   138K  5.95G         -     0%     0%  1.00x  ONLINE  -
+
+
+## add VDEVs to a mirror pool ##
+
+[root@freebsd11 /]# zpool create mymirror mirror vtbd1 vtbd2
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+
+errors: No known data errors
+[root@freebsd11 /]# zpool add mymirror mirror vtbd3 vtbd4
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	  mirror-1  ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+
+errors: No known data errors
+
+
+## add VDEVs to a RAIDZ pool ##
+
+[root@freebsd11 /]# zpool create myraidz raidz1 vtbd1 vtbd2 vtbd3
+[root@freebsd11 /]# zpool list
+NAME      SIZE  ALLOC   FREE  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
+myraidz  5.97G    92K  5.97G         -     0%     0%  1.00x  ONLINE  -
+[root@freebsd11 /]# zfs list
+NAME      USED  AVAIL  REFER  MOUNTPOINT
+myraidz  59.9K  3.85G  24.0K  /myraidz
+
+[root@freebsd11 /]# zpool add myraidz raidz1 vtbd4 vtbd5 vtbd6
+[root@freebsd11 /]# zpool list
+NAME      SIZE  ALLOC   FREE  EXPANDSZ   FRAG    CAP  DEDUP  HEALTH  ALTROOT
+myraidz  11.9G   255K  11.9G         -     0%     0%  1.00x  ONLINE  -
+
+[root@freebsd11 /]# zpool status -v myraidz
+  pool: myraidz
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	myraidz     ONLINE       0     0     0
+	  raidz1-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+	  raidz1-1  ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+	    vtbd5   ONLINE       0     0     0
+	    vtbd6   ONLINE       0     0     0
+
+errors: No known data errors
+
+
+## replace driver ##
+
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  vtbd1     ONLINE       0     0     0
+	  vtbd2     ONLINE       0     0     0
+
+errors: No known data errors
+[root@freebsd11 /]# zpool replace mymirror vtbd2 vtbd3
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 37.5K in 0h0m with 0 errors on Mon Dec  7 18:10:40 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  vtbd1     ONLINE       0     0     0
+	  vtbd3     ONLINE       0     0     0
+
+errors: No known data errors
+
+## replacing the same slot ##
+
+[root@freebsd11 /]# zpool create mymirror mirror vtbd1 vtbd2
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd2   ONLINE       0     0     0
+
+errors: No known data errors
+[root@freebsd11 /]# zpool replace mymirror vtbd2 vtbd3
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 59.5K in 0h0m with 0 errors on Mon Dec  7 18:13:45 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd3   ONLINE       0     0     0
+
+errors: No known data errors
+
+[root@freebsd11 /]# zpool offline mymirror vtbd3
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: DEGRADED
+status: One or more devices has been taken offline by the administrator.
+	Sufficient replicas exist for the pool to continue functioning in a
+	degraded state.
+action: Online the device using 'zpool online' or replace the device with
+	'zpool replace'.
+  scan: resilvered 59.5K in 0h0m with 0 errors on Mon Dec  7 18:13:45 2015
+config:
+
+	NAME                    STATE     READ WRITE CKSUM
+	mymirror                DEGRADED     0     0     0
+	  mirror-0              DEGRADED     0     0     0
+	    vtbd1               ONLINE       0     0     0
+	    606824418635992090  OFFLINE      0     0     0  was /dev/vtbd3
+
+errors: No known data errors
+
+[root@freebsd11 /]# zpool replace mymirror 606824418635992090 vtbd4
+[root@freebsd11 /]# zpool status
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 79K in 0h0m with 0 errors on Mon Dec  7 18:16:05 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+
+errors: No known data errors
+
+## add a log or cache device ##
+
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 79K in 0h0m with 0 errors on Mon Dec  7 18:16:05 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+
+errors: No known data errors
+[root@freebsd11 /]# zpool add mymirror log vtbd2
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 79K in 0h0m with 0 errors on Mon Dec  7 18:16:05 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+	logs
+	  vtbd2     ONLINE       0     0     0
+
+errors: No known data errors
+[root@freebsd11 /]# zpool add mymirror cache vtbd3
+[root@freebsd11 /]# zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: resilvered 79K in 0h0m with 0 errors on Mon Dec  7 18:16:05 2015
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vtbd1   ONLINE       0     0     0
+	    vtbd4   ONLINE       0     0     0
+	logs
+	  vtbd2     ONLINE       0     0     0
+	cache
+	  vtbd3     ONLINE       0     0     0
+
+errors: No known data errors
+
+## export/import pools ##
+
+[root@freebsd11 /]# zpool export mymirror
+[root@freebsd11 /]# zpool import mymirror
+
+[root@freebsd11 /]# zpool import
+   pool: mymirror
+     id: 15265556508647676950
+  state: ONLINE
+ action: The pool can be imported using its name or numeric identifier.
+ config:
+
+	mymirror    ONLINE
+	  mirror-0  ONLINE
+	    vtbd1   ONLINE
+	    vtbd4   ONLINE
+	cache
+	  vtbd3
+	logs
+	  vtbd2     ONLINE
+
+## rename import pools with new name ##
+
+[root@freebsd11 /]# zpool import mymirror newmirror
+
+## search destroied zpool ##
+[root@freebsd11 /]# zpool import -D
+
+## set autoexpand property ##
+[root@freebsd11 /]# zpool set autoexpand=on newmirror
+
+

@@ -176,3 +176,61 @@
 	Dataset Integrity
 	Most of ZFS protections work at the VDEV layer. dataset layer offers some
 	redundancy: checksums, metadata redundancy, and copies.
+
+
+### Chapter 5: Repairs & Renovations ###
+	VDEVs such as mirrors and RAID-Z are specifically designed to reconstruct
+	missing data on damaged disks.
+
+	ZFS knows precisely how much of each disk is in use. When ZFS reassembles
+	a replacement storage provider, it copies only the data actually needed 
+	on that provider.
+
+	ZFS reconstruction is called resilvering. It takes place only on live
+	filesystems. It happends automatically when you replace a storage provider.
+	In RAID-Z pool normaly while resilvering, resilvering can greatly slow
+	down. Resilvering and scrubbing are performed in order by transaction
+	groups, while normal read-write operations are pretty random.
+
+	Expanding Pools
+	To increase a pool's size, add a VDEV to the pool. For redundant pools,
+	you can replace storage providers with larger providers.
+
+	You can't remove a device from a non-mirror VDEV. You can't add providers
+	to any RAID-Z VDEV. To expand a RAID-Z based pool, you must add additional
+	VDEVs to the pool, or replace each member disk with a large one.
+
+	You can't add providers to any RAID-Z VDEV. To expand a RAID-Z based pool,
+	you must add additional VDEVs to the pool, or replace each member disk with
+	a large one.
+
+	You can use zpool attach to expand mirrored and striped VDEVs, but it
+	doesn't work on RAID-Z pools. You cann't add providers to a RAID-Z VDEV.
+
+	Hardware Status
+		Online, An online pool, VDEV, or provier is working normally.
+
+		Degraded, A degraded pool is missing at least one storage provider.
+			the provider is either totally offline, missing, or
+			generateing errors more quickly than ZFS tolerates.
+
+		Faulted, faulted storage providers are either corrupt or generate
+			more errors than ZFS can tolerate.
+
+		Unavail, means that ZFS can't open the storage provider. Maybe the
+			device isn't attached to the system anymore, or perhaps
+			it was badly imported.
+
+		Offline, offline devices have been deliberately turned off by the
+			sysadmin.
+
+		Removed, hardware lets ZFS set the removed status when a drive
+			is pulled. When you reattach the drive, ZFS tries to bring
+			the provider back online.
+
+	Log and Cache Device Maintenance
+		ZFS Intent Log (write cache)
+		L2ARC (read cache)
+
+	Zpool versions and upgrades: pool upgrades are not reversible.
+	ZFS versions and feature flags:
