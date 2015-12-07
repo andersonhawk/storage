@@ -92,7 +92,7 @@
 	writes between the VDEVs.
 
 	You cannot currently remove a VDEV from a pool. You can remove disks from certain
-	types fo VDEV (remove a disk from a mirror VDEV). You cannot shrink a pool.
+	types of VDEV (remove a disk from a mirror VDEV). You cannot shrink a pool.
 
 	Pool Alignment (partition alignment: gpart with alignment option)
 
@@ -123,3 +123,56 @@
 		$ zpool get all <pool> |grep feature
 
 ### Chapter 4: ZFS Datasets ###
+	ZFS pooling free space, giving partitions flexibility impossible with more
+	common filesystems. Each dataset has access to all of the free space in the
+	pool. You can limit the size of a dataset with a quota or guarantee it a
+	minimum amount of space with a reservation.
+
+	ZFS currently has five types of datasets:
+		filesystem dataset resembles a traditional filesystem, it stores
+			files and directories.
+		volume dataset (zvol) is a block device. On ZFS, zvol bypass all
+			the overhead of files and directories and reside directly
+			on the underlying pool.
+		snapshot dataset is a read-only copy of a dataset from a specific
+			point in time.
+		clone dataset is a new databset based on a snapshot of an existing
+			dataset, allowing you to fork a filesystem.
+
+	Compress property
+	Most properties apply only to data written after the property is changed.
+	The compression property tells ZFS to compress data before writing it to
+	disk.
+
+	To get the full benefit of enabling compression, you must rewrite every
+	file. You're better off creating a new dataset, copying the data over with
+	zfs send, and destroying the original dataset.
+
+	Readonly property
+	ZFS uses read-only properties to offer basic information about the dataset.
+
+	Parent/Child Relationships
+	We query the compression property on a dataset and all of its children.
+		$ zfs get -r compression mystripe
+		$ zfs inherit compression mystripe/lamb
+
+	Mountpoint
+	Each ZFS filesystem has a mountpoint property that defines where it should
+	be mounted. The default mountpoint is built from the pool's mountpoint.
+
+	ZFS volume (zvols) is pretty straightforward--here's a chunk of spaces as
+	a block device. You can adjust how a volume uses space and what kind of
+	device node it offers.
+
+	FreeBSD normally exposes zvols to the os as geom providers, giving them
+	maximum flexibility. Such volumes can be accessed only as raw disk device
+	files. They cannot be partitioned or mounted.
+
+	Setting volmode to none means that the volume is not exposed outside ZFS.
+	Settting volmode to default means the volume exposure is controlled by the
+		sysctl vfs.zfs.vol.mode.
+	The value 1 means the default is geom, 2 means dev, and 3 means none.
+
+	Dataset Integrity
+	Most of ZFS protections work at the VDEV layer. dataset layer offers some
+	redundancy: checksums, metadata redundancy, and copies.
