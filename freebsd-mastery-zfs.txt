@@ -234,3 +234,30 @@
 
 	Zpool versions and upgrades: pool upgrades are not reversible.
 	ZFS versions and feature flags:
+
+### Chapter 6: Disk Space Management ###
+	ZFS offers ways to improve disk space utilization (compression, deduplication).
+	ZFS flexibility means that users and applications can use disk space if it's
+	available.
+
+	A quotea dictates the maximum amount of space a dataset and all its
+	descendants can use up. A reservation dictates an amount of space set aside
+	for a dataset.
+
+	A quota is a maximum amount of space that a dataset, user, or user group
+	may use. All of these quotas are set on a per-dataset basis.
+
+	A quota space including snapshots, child datasets, and everything else. You
+	can separately limit the amount of referenced data with a refquota. This
+	excludes child datasets and snapshots.
+
+	For example, setting a refquota of 10GB and a quota of 100 GB would tell
+	you that you could always have 10 snapshots even if the data completely
+	changes.
+
+	Deduplication probably only makes sense when disk space is contrained,
+	expensive, and very high performance (SSD cache).
+
+	Your best choice is probably to not use deduplication. Deduplication is
+	a great technology, and the people who need it really do need it. Most of
+	us don't have deduplicable data, however.

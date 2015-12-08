@@ -555,4 +555,75 @@ errors: No known data errors
 ## set autoexpand property ##
 [root@freebsd11 /]# zpool set autoexpand=on newmirror
 
+## list more option about zfs space ##
+[root@freebsd11 ~]# zfs list -o space
+NAME       AVAIL   USED  USEDSNAP  USEDDS  USEDREFRESERV  USEDCHILD
+newmirror  1.92G   102K         0     19K              0      82.5K
+
+## set zfs quota and reservation ##
+
+[root@freebsd11 ~]# zfs create newmirror/log
+[root@freebsd11 ~]# zfs create newmirror/data
+[root@freebsd11 ~]# zfs list
+NAME             USED  AVAIL  REFER  MOUNTPOINT
+newmirror        152K  1.92G    19K  /newmirror
+newmirror/data    19K  1.92G    19K  /newmirror/data
+newmirror/log     19K  1.92G    19K  /newmirror/log
+
+[root@freebsd11 ~]# zfs set quota=1G newmirror/log
+[root@freebsd11 ~]# zfs list
+NAME             USED  AVAIL  REFER  MOUNTPOINT
+newmirror        153K  1.92G    19K  /newmirror
+newmirror/data    19K  1.92G    19K  /newmirror/data
+newmirror/log     19K  1024M    19K  /newmirror/log
+
+[root@freebsd11 ~]# zfs set reservation=512M newmirror/data
+[root@freebsd11 ~]# zfs list
+NAME             USED  AVAIL  REFER  MOUNTPOINT
+newmirror        512M  1.42G    19K  /newmirror
+newmirror/data    19K  1.92G    19K  /newmirror/data
+newmirror/log     19K  1024M    19K  /newmirror/log
+
+## remove reservation space ##
+
+[root@freebsd11 ~]# zfs set reservation=none newmirror/data
+[root@freebsd11 ~]# zfs list
+NAME             USED  AVAIL  REFER  MOUNTPOINT
+newmirror        153K  1.92G    19K  /newmirror
+newmirror/data    19K  1.92G    19K  /newmirror/data
+newmirror/log     19K  1024M    19K  /newmirror/log
+
+## user/group space quota ##
+
+[root@freebsd11 ~]# zfs userspace newmirror/data
+TYPE        NAME  USED  QUOTA
+POSIX User  root    1K   none
+[root@freebsd11 ~]# zfs groupspace newmirror/data
+TYPE         NAME   USED  QUOTA
+POSIX Group  wheel    1K   none
+
+
+## set/get zfs compress ##
+
+[root@freebsd11 ~]# zfs get all newmirror/data |grep group
+[root@freebsd11 ~]# zfs get compress newmirror/data
+NAME            PROPERTY     VALUE     SOURCE
+newmirror/data  compression  off       default
+[root@freebsd11 ~]# zfs set compress=lz4 newmirror/data
+[root@freebsd11 ~]# zfs get compress newmirror/data
+NAME            PROPERTY     VALUE     SOURCE
+newmirror/data  compression  lz4       local
+
+## set/get deduplication ##
+
+[root@freebsd11 ~]# zfs set dedup=on newmirror/data
+[root@freebsd11 ~]# zfs get dedup newmirror/data
+NAME            PROPERTY  VALUE          SOURCE
+newmirror/data  dedup     on             local
+[root@freebsd11 ~]# zfs set dedup=off newmirror/data
+
+
+
+
+
 
