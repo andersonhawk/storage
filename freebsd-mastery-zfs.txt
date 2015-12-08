@@ -261,3 +261,23 @@
 	Your best choice is probably to not use deduplication. Deduplication is
 	a great technology, and the people who need it really do need it. Most of
 	us don't have deduplicable data, however.
+
+
+### Chapter 7: Snapshots and Clones ###
+	One of ZFS's most powerful features is snapshots. A filesystem or zvol
+	snapshot allows you to access a copy of the dataset as it existed at a
+	precise moment. Snapshots are read-only, and never change.
+
+	Snapshots are the root of many special ZFS features, such as clones. A clone
+	is a fork of a filesystem based on a snapshot. New clones take no additional
+	space. As you alter the clone, ZFS allocates new storage to accommodate
+	the changes.
+
+	Snapshots also underpin replication, letting you send datasets from one
+	host to another. Best of all, ZFS copy-on-write nature means that snapshots
+	are free.
+
+	Bookmarks are similiar to snapshots, except they don't keep old data around.
+
+	A clone is a new filesystem created from a snapshot. Clones do not receive
+	updates made in the original dataset. They're based on a static snapshot.

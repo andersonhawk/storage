@@ -623,7 +623,48 @@ newmirror/data  dedup     on             local
 [root@freebsd11 ~]# zfs set dedup=off newmirror/data
 
 
+## create zfs snapshot ##
+
+[root@freebsd11 ~]# zfs list -t all
+NAME        USED  AVAIL  REFER  MOUNTPOINT
+newmirror   118K  1.92G    19K  /newmirror
+[root@freebsd11 ~]# zfs snapshot newmirror@snap1
+[root@freebsd11 ~]# zfs list -t all
+NAME              USED  AVAIL  REFER  MOUNTPOINT
+newmirror         120K  1.92G    19K  /newmirror
+newmirror@snap1      0      -    19K  -
 
 
+## mount snapshot on filesystem ##
 
+[root@freebsd11 ~]# mount -t zfs newmirror@snap1 /mnt
+
+## destroy snapshot ##
+[root@freebsd11 /]# zfs destroy newmirror@snap1
+
+## rollback with snapshot ##
+
+[root@freebsd11 /]# zfs snapshot newmirror@12082015
+[root@freebsd11 /]# zfs list -t all
+NAME                 USED  AVAIL  REFER  MOUNTPOINT
+newmirror            124K  1.92G    19K  /newmirror
+newmirror@12082015      0      -    19K  -
+[root@freebsd11 /]# zfs rollback newmirror@12082015
+
+
+## diff with snapshot ##
+
+[root@freebsd11 /]# zfs diff newmirror@snap1
+M	/newmirror/
++	/newmirror/readme.txt
+
+## create a clone base on a snapshot ##
+
+[root@freebsd11 /]# zfs clone newmirror@snap2 newmirror/clone
+[root@freebsd11 /]# zfs list -t all
+NAME              USED  AVAIL  REFER  MOUNTPOINT
+newmirror         162K  1.92G    19K  /newmirror
+newmirror@snap1     9K      -    19K  -
+newmirror@snap2      0      -    19K  -
+newmirror/clone     1K  1.92G    19K  /newmirror/clone
 
