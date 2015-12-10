@@ -1,0 +1,36 @@
+### freebsd zfs share on NFS/Samba notes ###
+
+## freebsd zfs share on NFS notes ##
+
+# add following lines about zfs/nfs/mountd services in /etc/rc.conf ##
+
+zfs_enable="YES"
+
+nfs_server_enable="YES"
+nfs_server_flags="-u -t -n 4"
+rpcbind_enable="YES"
+
+mountd_flags="YES"
+mountd_enable="YES"
+
+# touch /etc/exports file for nfsd #
+# reboot system and check nfsd/mountd services status ##
+	$ /etc/rc.d/nfsd onestatus
+	$ /etc/rc.d/mountd onestatus
+
+# publish zfs share dataset #
+	$ zfs get sharenfs myraidz/mirrors
+	$ zfs set sharenfs="-maproot=0 -network 10.3.15.0 -mask 255.255.255.0" myraidz/mirrors
+	$ zfs share myraidz/mirrors
+# clear zfs share configuration #
+	$ zfs set sharenfs=off myraidz/mirrors
+
+# stop zfs share dataset #
+	$ zfs unshare myraidz/mirrors
+
+# check nfs share is ok (/etc/zfs/exports don't edit the file) #
+	$ showmount -e localhost
+
+# mount zfs share on linux #
+	$ showmount -e 10.3.15.15
+	$ mount -t nfs -o vers=3 10.3.15.15:/myraidz/mirrors /media/nfs
