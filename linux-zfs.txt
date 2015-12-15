@@ -1,0 +1,11 @@
+### centos with zfs notes ###
+
+
+## install zfs packages ##
+
+	# install epel repository #
+	$ yum install http://mirrors.ustc.edu.cn/epel/6Server/x86_64/epel-release-6-8.noarch.rpm
+	# modify /etc/yum.repos.d/epel.repo with mirrors.ustc.edu.cn repos #
+	# install zfs repository #
+	$ yum localinstall --nogpgcheck http://archive.zfsonlinux.org/epel/zfs-release.el6.noarch.rpm
+	$ yum install kernel-devel zfs
