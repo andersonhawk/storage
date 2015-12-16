@@ -9,3 +9,70 @@
 	# install zfs repository #
 	$ yum localinstall --nogpgcheck http://archive.zfsonlinux.org/epel/zfs-release.el6.noarch.rpm
 	$ yum install kernel-devel zfs
+
+
+
+
+### debian zfs notes ###
+
+## setup zfs build dependenices ##
+	$ apt-get install build-essential gawk alien fakeroot linux-headers-$(uname -r)
+	$ apt-get install zlib1g-dev uuid-dev libblkid-dev libselinux-dev parted lsscsi wget
+
+## use zfs release packages from zfsonlinux.org ##
+## fetch git repository from github.com ##
+	$ git clone https://github.com/zfsonlinux/spl.git
+	$ git clone https://github.com/zfsonlinux/zfs.git
+
+## config, build  ##
+	$ cd spl
+	$ ./autogen.sh
+	$ ./configure
+
+	$ make deb-utils deb-kmod
+
+	$ cd zfs
+	$ ./autogen.sh
+	$ ./configure
+
+	$ make deb-utils deb-kmod
+
+## setup spl *.deb packages ##
+	$ dpkg -i kmod-spl-3.16.0-4-amd64_0.6.5-29_amd64.deb \
+			kmod-spl-devel_0.6.5-29_amd64.deb \
+			kmod-spl-devel-3.16.0-4-amd64_0.6.5-29_amd64.deb \
+			spl_0.6.5-29_amd64.deb
+
+## setup zfs *.deb packages ##
+	$ dpkg -i zfs_0.6.5-66_amd64.deb \
+			kmod-zfs-3.16.0-4-amd64_0.6.5-66_amd64.deb \
+			libnvpair1_0.6.5-66_amd64.deb \
+			libuutil1_0.6.5-66_amd64.deb \
+			libzfs2_0.6.5-66_amd64.deb \
+			libzpool2_0.6.5-66_amd64.deb
+
+## load zfs kernel module ##
+	$ /sbin/modprobe zfs
+	$ lsmod |grep zfs
+
+## try to create zpool (raid10) ##
+$ zpool create -f mymirror mirror vdb vdc vdd mirror vde vdf vdg
+$ zpool status -v
+  pool: mymirror
+ state: ONLINE
+  scan: none requested
+config:
+
+	NAME        STATE     READ WRITE CKSUM
+	mymirror    ONLINE       0     0     0
+	  mirror-0  ONLINE       0     0     0
+	    vdb     ONLINE       0     0     0
+	    vdc     ONLINE       0     0     0
+	    vdd     ONLINE       0     0     0
+	  mirror-1  ONLINE       0     0     0
+	    vde     ONLINE       0     0     0
+	    vdf     ONLINE       0     0     0
+	    vdg     ONLINE       0     0     0
+
+errors: No known data errors
+
