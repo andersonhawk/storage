@@ -77,7 +77,7 @@ config:
 errors: No known data errors
 
 ## ZFS notes about :https://pthree.org/category/zfs ##
-## ZFS Administration ##
+## ZPool Administration ##
 
 # There are seven types of VDEVs in ZFS #
 	1. disk (default) - The physical hard drives in system.
@@ -146,4 +146,27 @@ errors: No known data errors
 
 # Hybird RAIDZ #
 	Hybird RAIDZ can greatly increase performance, but cost usable disk space.
+
+# ZIL: ZFS Intent Log #
+	A logging mechanism where all of the data to be the written is stored, then
+	later flushed as a transactional write. Consists of a ZIL header, which 
+	points to a list of records, ZIL blocks and a ZIL trailer. The ZIL behaves
+	differently for different writes.
+
+# SLOG: Separate Intent Log #
+	A separate logging device that caches the synchronous parts of the ZIL
+	before flushing them to slower disk.
+
+	SLOG is the device (SSD), ZIL is data on the device. Further, not all
+	applications take advantage of the ZIL.
+
+	First and foremost, ZFS has advanced wear-leveling algorithms that will
+	evenling wear each chip on the SSD. The is no need for TRIM support, which
+	in all reality, is really just a garbage collection support more than
+	anything. The wear-leveling of ZFS in inherent due to the copy-on-write
+	nature of the filesystem.
+
+	A fast SLOG can provide amazing benefits for applications that need lower
+	latencies on synchronous transactions. This works well for database server
+	or other applications that are more time sensitive.
 
