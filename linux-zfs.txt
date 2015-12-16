@@ -76,3 +76,74 @@ config:
 
 errors: No known data errors
 
+## ZFS notes about :https://pthree.org/category/zfs ##
+## ZFS Administration ##
+
+# There are seven types of VDEVs in ZFS #
+	1. disk (default) - The physical hard drives in system.
+	2. file - The absolute path of pre-allocated files/images.
+	3. mirror - standard software RAID-1 mirror.
+	4. raidz1/2/3 - non-standard distributed partiy-based software RAID levels.
+	5. spare - hard drives marked as a 'hot spare' for zfs software RAID.
+	6. cache - device used for a level 2 adaptive read cache (L2ARC).
+	7. log - a separate log (SLOG) called the 'ZFS Intent Log' or ZIL.
+
+# Raid technology #
+# RAID 0: no redundancy #
+	it is a way of joining multi-disk together to create one big disk, the
+	data is interleaved between the disks and so it improves performance,
+	but there is no fault tolerance.
+
+# RAID 1: mirror #
+	it uses one disk mirroring the contents of the other disk, the write
+	performance is often slightly worse than one disk, but read performance
+	is greatly improved as the data is available in two disks and the read
+	operation can be split between two disks.
+
+# RAID 1+0: mirrored stripes #
+	is is a RAID1 array of two RAID 0 array. it can sustain multiple drive
+	failures as long as the two failed drivers are part of the same RAID0 set.
+	The read performance is good and the write performance is better than 
+	RAID 1.
+
+# Standards Parity RAID5, 6 #
+	RAID5 needs a minimum of 3 disks for a RAID-5 array. On two disks, the
+	data is striped. A parity bit is then calculated such than the XOR of
+	all three stripes in the set is calculated to zero. The parity is then
+	written to disk. This allows you to suffer one disk failure.
+
+	'Write hole': write data out and power outtage occurs before parity be
+	write.
+
+	RAID5 combine a large number of physical disks, and still maintain some
+	redundancy. Both read and write performance usually increased.
+	sizeof(RAID 5) = (n - 1) * unit_size.
+
+	RAID6 needs a minimum of 4 disks for a RAID-6 array. it similar to RAID5
+	except that data striped with dual parity. The array can recover from two
+	disks failure at the same time.
+	sizeof(RAID 6) = (n - 2) * unit_size.
+
+# ZFS RAID #
+	Rather than the stripe width be statically set at creation, the stripe width
+	is dynamic. Every RAIDZ write is a full stripe write, the parity bit is
+	flushed with the stripe simultaneously, completely eliminating the RAID5
+	write hole.
+
+	ZFS can detect silent errors, and fix them on the fly (Self-healing RAID).
+	When the application requests the data, ZFS constructs the strip, compares
+	each block against a default checksum in the metadata, which is currently
+	fletcher4. If the read stripe does not match the checksum, ZFS finds the
+	corrupted block, it then reads the parity, and fixes it through combinatorial
+	reconstruction. It then returns good data to the application.
+
+	RAIDZ1 is similar to RAID5, the stripe width is variable.
+	RAIDZ2 is similar to RAID6, there is a dual parity bit distributed across
+	all the disks in the array.
+	RAIDZ3 doesn't have a standardized RAID level to compare it to. it allows
+	for three disk failures to maintain data.
+	sizeof(RAIDZ3) = (n - 3) * unit_size.
+
+# Hybird RAIDZ #
+	Hybird RAIDZ can greatly increase performance, but cost usable disk space.
+
