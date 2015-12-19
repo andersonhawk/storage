@@ -17,7 +17,7 @@
 	$ testparam
 
 ## samba mount ##
-	$ mount -t cifs -o user=xxx //x.x.x.x/dir /mount_dir
+	$ mount -t cifs -o username=xxx,password=password //x.x.x.x/dir /mount_dir
 
 # global configuration #
 	workgroup = xx
