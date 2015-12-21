@@ -76,7 +76,14 @@ config:
 
 errors: No known data errors
 
-## ZFS notes about :https://pthree.org/category/zfs ##
+## zfs useful links ##
+	https://www.princeton.edu/~unix/Solaris/troubleshoot/zfs.html
+	http://constantin.glez.de/blog/2011/02/frequently-asked-questions-about-flash-memory-ssds-and-zfs
+	http://www.quetek.com/zfsandraidz.htm
+	https://calomel.org/zfs_raid_speed_capacity.html
+
+	https://pthree.org/2012/04/17/install-zfs-on-debian-gnulinux/
+
 ## ZPool Administration ##
 
 # There are seven types of VDEVs in ZFS #
