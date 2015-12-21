@@ -170,3 +170,23 @@ errors: No known data errors
 	latencies on synchronous transactions. This works well for database server
 	or other applications that are more time sensitive.
 
+# ZFS ARC: ZFS adjustable replacement cache #
+	ARC (Adjustable Replacement Cache) residing in physical RAM. It is built
+	using two caches - the most frequently used cached and the most recently
+	used cache.
+
+	MRU Cache: The most recently used cache of the ARC.
+
+	MFU Cache: The most frequently used cache of the ARC.
+
+	GhostMRU: Evicted pages from the MRU cache back to disk to save space in MRU.
+
+	GhostMFU: Evicted pages from the MFU cache back to disk to save sapce in MFU.
+
+	ZFS ARC will occupy 1/2 of available RAM, the total cache will adjust its
+	size based on kernel decisions. it can work with multiple block sizes.
+	Pages can be locked in the MRU or MFU to prevent eviction.
+
+	L2ARC (Level 2 Adjustable Replacement Cache): A cache residing outside
+		of physical memory (typical on a fast SSD).
+
