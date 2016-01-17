@@ -38,6 +38,9 @@
 # check and start iscsid status
 	$systemctl status open-iscsi.service
 
+# rescan iscsi session
+	$iscsiadm -m session -R
+
 # discovery iscsi target (default port 3260)
 	$iscsiadm -m discovery -t sendtargets -p 10.2.15.188:3260
 
